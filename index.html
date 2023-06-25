@@ -1,0 +1,81 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <script>
+  let chars = "";
+  let client = null;
+  let el = null;
+  let stopped = false;
+
+  function render() {
+      el.innerHTML = chars;
+  }
+
+  function reset() {
+      chars = "";
+      stopped = false;
+      render();
+  }
+
+  function onMessage(event) {
+      const data = event.data;
+      if (data == '_end_') {
+          chars += "  已完成";
+          stopped = true;
+          render();
+          return;
+      }
+      if (!stopped) {
+          chars += " " + data;
+          render();
+          client.send('');
+      }
+  }
+
+  function onReady() {
+      el = document.getElementById("message");
+      client = new WebSocket("ws://localhost:8001/ws");
+      client.onmessage = onMessage;
+  }
+
+  function sendData(msg) {
+      reset();
+      client.send(msg);
+  }
+
+  function stop() {
+      client.send('stop');
+  }
+  </script>
+  <style>
+  #message {
+      font-size: 24px;
+      font-weight: bold;
+  }
+  .cursor {
+      margin-left: 5px;
+      width: 2px;
+      background-color: gray;
+      height: 20px;
+      display: inline-block;
+  }
+  </style>
+  <body onload="onReady()">
+    <p>
+      <button onclick="sendData('客户端消息')">WebSocket生成</button>
+      <span>&nbsp;</span>
+      <button onclick="stop()">停止 WebSocket</button>
+    </p>
+    <p>
+      <span id="message"></span>
+      <i class="cursor"></i>
+    </p>
+    <p>
+      <ul></ul>
+    </p>
+  </body>
+</html>
